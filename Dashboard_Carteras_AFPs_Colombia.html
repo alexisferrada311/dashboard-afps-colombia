@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carteras AFPs Colombia — Dashboard Interactivo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+    --dk1: #01172D;
+    --accent1: #5CC6B4;
+    --accent2: #005662;
+    --accent5: #3666C0;
+    --accent6: #A8D0FF;
+    --accent4: #CDC195;
+    --bg: #0a1929;
+    --card-bg: #0d2137;
+    --card-border: #1a3a5c;
+    --green: #4caf50;
+    --red: #ef5350;
+    --text: #e0e6ed;
+    --text-muted: #8899aa;
+    --text-bright: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.4;
+}
+
+/* HEADER */
+.dashboard-header {
+    background: linear-gradient(135deg, var(--dk1) 0%, #0d2137 100%);
+    border-bottom: 2px solid var(--accent2);
+    padding: 18px 30px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: -0.5px;
+}
+
+.header-title span { color: var(--accent1); }
+
+.header-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.filter-group label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.8px;
+    font-weight: 600;
+}
+
+.filter-group select {
+    background: var(--dk1);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    padding: 7px 14px;
+    border-radius: 4px;
+    font-size: 0.83rem;
+    cursor: pointer;
+    min-width: 150px;
+    transition: border-color 0.2s;
+}
+
+.filter-group select:hover { border-color: var(--accent1); }
+.filter-group select:focus { outline: none; border-color: var(--accent1); box-shadow: 0 0 0 2px rgba(92,198,180,0.15); }
+
+/* TAB NAV */
+.tab-nav {
+    display: flex;
+    gap: 2px;
+    padding: 0 30px;
+    background: var(--dk1);
+    border-bottom: 1px solid var(--card-border);
+    overflow-x: auto;
+}
+
+.tab-btn {
+    padding: 12px 22px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+.tab-btn:hover { color: var(--text); background: rgba(92, 198, 180, 0.04); }
+
+.tab-btn.active {
+    color: var(--accent1);
+    border-bottom-color: var(--accent1);
+    background: rgba(92, 198, 180, 0.07);
+}
+
+/* MAIN */
+.main-content {
+    padding: 24px 30px 40px;
+    max-width: 1620px;
+    margin: 0 auto;
+}
+
+.section { display: none; animation: fadeIn 0.3s ease; }
+.section.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* KPI CARDS */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.kpi-card:hover { border-color: var(--accent2); transform: translateY(-1px); }
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+}
+
+.kpi-card:nth-child(1)::before { background: var(--accent1); }
+.kpi-card:nth-child(2)::before { background: var(--accent5); }
+.kpi-card:nth-child(3)::before { background: var(--accent6); }
+.kpi-card:nth-child(4)::before { background: var(--accent4); }
+.kpi-card:nth-child(5)::before { background: var(--accent2); }
+
+.kpi-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.kpi-value {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: -0.5px;
+}
+
+.kpi-value.small { font-size: 1.05rem; }
+
+.kpi-sub {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+    margin-top: 3px;
+}
+
+.kpi-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-top: 5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.kpi-badge.positive { background: rgba(76, 175, 80, 0.15); color: var(--green); }
+.kpi-badge.negative { background: rgba(239, 83, 80, 0.15); color: var(--red); }
+
+/* CHART GRID */
+.chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.chart-grid.single { grid-template-columns: 1fr; }
+.chart-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+.chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+}
+
+.chart-card h3 {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+
+.chart-container.tall { height: 420px; }
+.chart-container.medium { height: 340px; }
+.chart-container.short { height: 260px; }
+
+/* TABLES */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 6px;
+    border: 1px solid var(--card-border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+thead th {
+    background: var(--dk1);
+    color: var(--text-muted);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--card-border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+thead th:hover { color: var(--accent1); }
+thead th.sort-asc::after { content: ' \u25B2'; color: var(--accent1); font-size: 0.6rem; }
+thead th.sort-desc::after { content: ' \u25BC'; color: var(--accent1); font-size: 0.6rem; }
+
+tbody tr {
+    border-bottom: 1px solid rgba(26, 58, 92, 0.4);
+    transition: background 0.15s;
+}
+
+tbody tr:hover { background: rgba(92, 198, 180, 0.05); }
+tbody tr:nth-child(even) { background: rgba(13, 33, 55, 0.5); }
+tbody tr:nth-child(even):hover { background: rgba(92, 198, 180, 0.05); }
+
+tbody td {
+    padding: 8px 12px;
+    color: var(--text);
+}
+
+.text-right { text-align: right; }
+
+.mini-bar-cell {
+    position: relative;
+    min-width: 130px;
+}
+
+.mini-bar {
+    height: 7px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent1));
+    transition: width 0.4s ease;
+}
+
+.var-positive { color: var(--green); font-weight: 600; }
+.var-negative { color: var(--red); font-weight: 600; }
+
+/* HEATMAP */
+.heatmap-cell {
+    text-align: center !important;
+    font-weight: 500;
+    font-size: 0.76rem;
+    padding: 8px 8px !important;
+    min-width: 90px;
+    transition: transform 0.1s;
+}
+
+.heatmap-cell:hover { transform: scale(1.04); }
+
+/* SUB TABS */
+.sub-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.sub-tab-btn {
+    padding: 8px 18px;
+    background: var(--dk1);
+    border: 1px solid var(--card-border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.sub-tab-btn:hover { border-color: var(--accent1); color: var(--text); }
+
+.sub-tab-btn.active {
+    background: var(--accent2);
+    color: var(--accent1);
+    border-color: var(--accent1);
+    font-weight: 600;
+}
+
+.sub-section { display: none; }
+.sub-section.active { display: block; }
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    padding: 22px 30px;
+    color: var(--text-muted);
+    font-size: 0.73rem;
+    border-top: 1px solid var(--card-border);
+    margin-top: 30px;
+    letter-spacing: 0.3px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--dk1); }
+::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent2); }
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-grid.triple { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .header-top { flex-direction: column; align-items: flex-start; }
+    .main-content { padding: 16px 14px; }
+    .dashboard-header { padding: 14px 16px; }
+    .tab-nav { padding: 0 14px; }
+    .tab-btn { padding: 10px 14px; font-size: 0.78rem; }
+    .kpi-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .kpi-value { font-size: 1.2rem; }
+    .filters { gap: 8px; }
+    .filter-group select { min-width: 120px; padding: 6px 10px; }
+}
+</style>
+</head>
+<body>
+
+<header class="dashboard-header">
+    <div class="header-top">
+        <div>
+            <h1 class="header-title">Carteras AFPs Colombia — <span>Dashboard Interactivo</span></h1>
+            <div class="header-subtitle">Portafolios Internacionales | Datos: Superintendencia Financiera de Colombia | Q1 2026</div>
+        </div>
+        <div class="filters">
+            <div class="filter-group">
+                <label>Periodo</label>
+                <select id="filterPeriodo">
+                    <option value="all">Todos</option>
+                    <option value="202601">Enero 2026</option>
+                    <option value="202602">Febrero 2026</option>
+                    <option value="202603" selected>Marzo 2026</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>AFP</label>
+                <select id="filterAFP">
+                    <option value="all">Todas</option>
+                    <option value="PORVENIR">Porvenir</option>
+                    <option value="PROTECCION">Proteccion</option>
+                    <option value="COLFONDOS">Colfondos</option>
+                    <option value="SKANDIA">Skandia</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Region</label>
+                <select id="filterRegion">
+                    <option value="all">Todas</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</header>
+
+<nav class="tab-nav">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="comparativo">Comparativo AFP</button>
+    <button class="tab-btn" data-tab="variaciones">Variaciones</button>
+    <button class="tab-btn" data-tab="heatmap">Mapa de Concentracion</button>
+    <button class="tab-btn" data-tab="tablas">Tablas de Detalle</button>
+</nav>
+
+<main class="main-content">
+    <!-- SECTION 1: OVERVIEW -->
+    <div id="section-overview" class="section active">
+        <div class="kpi-row" id="kpiRow"></div>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Top 12 Regiones por AUM (USD M)</h3>
+                <div class="chart-container tall"><canvas id="chartRegions"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3>Participacion por AFP</h3>
+                <div class="chart-container tall"><canvas id="chartAFPDoughnut"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: COMPARATIVO AFP -->
+    <div id="section-comparativo" class="section">
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Composicion AFP por Region (Top 10 - Stacked)</h3>
+                <div class="chart-container tall"><canvas id="chartStacked"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3>AUM por Multifondo (USD M)</h3>
+                <div class="chart-container tall"><canvas id="chartMultifondo"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: VARIACIONES -->
+    <div id="section-variaciones" class="section">
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Evolucion Ene-Mar 2026 por Top Regiones</h3>
+                <div class="chart-container tall"><canvas id="chartEvolution"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3>Variacion % Mensual por AFP</h3>
+                <div class="chart-container tall"><canvas id="chartVarAFP"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4: HEATMAP -->
+    <div id="section-heatmap" class="section">
+        <div class="chart-card">
+            <h3>Mapa de Concentracion — AFP x Region (USD M)</h3>
+            <div class="table-wrapper" id="heatmapWrapper" style="max-height:70vh;overflow-y:auto"></div>
+        </div>
+    </div>
+
+    <!-- SECTION 5: TABLAS -->
+    <div id="section-tablas" class="section">
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" data-subtab="byRegion">Por Region</button>
+            <button class="sub-tab-btn" data-subtab="byAFP">Por AFP &amp; Multifondo</button>
+            <button class="sub-tab-btn" data-subtab="byVar">Variaciones Mensuales</button>
+        </div>
+        <div id="subtab-byRegion" class="sub-section active">
+            <div class="chart-card">
+                <h3>Detalle por Region</h3>
+                <div class="table-wrapper" id="tableRegionWrapper" style="max-height:65vh;overflow-y:auto"></div>
+            </div>
+        </div>
+        <div id="subtab-byAFP" class="sub-section">
+            <div class="chart-card">
+                <h3>Detalle por AFP &amp; Multifondo</h3>
+                <div class="table-wrapper" id="tableAFPWrapper" style="max-height:65vh;overflow-y:auto"></div>
+            </div>
+        </div>
+        <div id="subtab-byVar" class="sub-section">
+            <div class="chart-card">
+                <h3>Top Fondos — Mayores Aumentos &amp; Disminuciones</h3>
+                <div class="table-wrapper" id="tableVarWrapper" style="max-height:65vh;overflow-y:auto"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="footer">
+    XLC AGF — Institutional Distribution | Datos: Superintendencia Financiera de Colombia
+</footer>
+
+<script>
+// ================================================================
+// DATA — All raw values multiplied by 1,000,000 to get USD M
+// ================================================================
+const M = 1000000;
+
+const rawData = [
+// 202601 - COLFONDOS
+["202601","COLFONDOS","Private Equity",0.00235617*M,71],
+["202601","COLFONDOS","USA/Canada Large Caps",0.00203078*M,21],
+["202601","COLFONDOS","Global Emerging Markets + BRIC",0.00123507*M,21],
+["202601","COLFONDOS","China",0.00037276*M,11],
+["202601","COLFONDOS","Bank",0.00037116*M,8],
+["202601","COLFONDOS","USA/Canada Sectors",0.00034577*M,22],
+["202601","COLFONDOS","Japan",0.00024898*M,11],
+["202601","COLFONDOS","Asia Emerging",0.00020043*M,11],
+["202601","COLFONDOS","Latin America",0.00017859*M,8],
+["202601","COLFONDOS","Global Large Caps",0.00015786*M,9],
+["202601","COLFONDOS","Corporate",0.00015717*M,2],
+["202601","COLFONDOS","Europe Large Caps",0.00012515*M,6],
+["202601","COLFONDOS","Government",0.00010488*M,4],
+["202601","COLFONDOS","Global Sectors",0.00009349*M,5],
+["202601","COLFONDOS","Fixed Income",0.00008691*M,12],
+["202601","COLFONDOS","Real Estate",0.00004852*M,5],
+["202601","COLFONDOS","Money Market",0.00004039*M,1],
+["202601","COLFONDOS","Europe Europe ex UK",0.00003780*M,2],
+["202601","COLFONDOS","China A",0.00003313*M,4],
+["202601","COLFONDOS","No Identificado",0.00002091*M,3],
+["202601","COLFONDOS","Asia Pacific EX Japan",0.00001962*M,1],
+["202601","COLFONDOS","Europe Small Caps",0.00000124*M,1],
+
+// 202601 - PORVENIR
+["202601","PORVENIR","USA/Canada Large Caps",0.01087045*M,21],
+["202601","PORVENIR","Private Equity",0.00722937*M,121],
+["202601","PORVENIR","Global Emerging Markets + BRIC",0.00483372*M,14],
+["202601","PORVENIR","Japan",0.00182367*M,6],
+["202601","PORVENIR","USA/Canada Sectors",0.00124396*M,15],
+["202601","PORVENIR","China",0.00105382*M,6],
+["202601","PORVENIR","Bank",0.00085134*M,11],
+["202601","PORVENIR","Government",0.00077069*M,8],
+["202601","PORVENIR","Asia Emerging",0.00069927*M,7],
+["202601","PORVENIR","Money Market",0.00064644*M,4],
+["202601","PORVENIR","Latin America",0.00058085*M,10],
+["202601","PORVENIR","Global Large Caps",0.00032027*M,5],
+["202601","PORVENIR","Europe Large Caps",0.00023284*M,2],
+["202601","PORVENIR","No Identificado",0.00016012*M,2],
+["202601","PORVENIR","Corporate",0.00013957*M,4],
+["202601","PORVENIR","China A",0.00011615*M,1],
+["202601","PORVENIR","Asia Pacific EX Japan",0.00010753*M,3],
+["202601","PORVENIR","Fixed Income",0.00009260*M,2],
+["202601","PORVENIR","USA/Canada Small Caps",0.00007301*M,1],
+["202601","PORVENIR","Europe Europe ex UK",0.00007209*M,3],
+["202601","PORVENIR","Real Estate",0.00006216*M,4],
+["202601","PORVENIR","Global Sectors",0.00000459*M,4],
+["202601","PORVENIR","Global International (ex US)",0.00000422*M,1],
+["202601","PORVENIR","UK",0.00000383*M,1],
+["202601","PORVENIR","Europe",0.00000326*M,1],
+
+// 202601 - PROTECCION
+["202601","PROTECCION","Private Equity",0.00658319*M,117],
+["202601","PROTECCION","USA/Canada Large Caps",0.00555480*M,11],
+["202601","PROTECCION","Global Emerging Markets + BRIC",0.00340349*M,11],
+["202601","PROTECCION","USA/Canada Sectors",0.00189442*M,24],
+["202601","PROTECCION","Japan",0.00129780*M,10],
+["202601","PROTECCION","Bank",0.00127006*M,8],
+["202601","PROTECCION","China",0.00066556*M,8],
+["202601","PROTECCION","Asia Emerging",0.00059398*M,4],
+["202601","PROTECCION","Europe Large Caps",0.00057698*M,7],
+["202601","PROTECCION","Latin America",0.00053129*M,6],
+["202601","PROTECCION","Corporate",0.00039804*M,4],
+["202601","PROTECCION","Global Large Caps",0.00028849*M,8],
+["202601","PROTECCION","Money Market",0.00028028*M,2],
+["202601","PROTECCION","Asia Pacific EX Japan",0.00025049*M,5],
+["202601","PROTECCION","Government",0.00021977*M,4],
+["202601","PROTECCION","China A",0.00009847*M,1],
+["202601","PROTECCION","Europe",0.00009626*M,1],
+["202601","PROTECCION","Global Sectors",0.00008561*M,6],
+["202601","PROTECCION","Fixed Income",0.00008021*M,12],
+["202601","PROTECCION","Global",0.00004866*M,1],
+["202601","PROTECCION","Europe Europe ex UK",0.00002220*M,2],
+["202601","PROTECCION","No Identificado",0.00002161*M,1],
+["202601","PROTECCION","Global International (ex US)",0.00000738*M,1],
+
+// 202601 - SKANDIA
+["202601","SKANDIA","Private Equity",0.00086217*M,24],
+["202601","SKANDIA","USA/Canada Large Caps",0.00068535*M,24],
+["202601","SKANDIA","Global Emerging Markets + BRIC",0.00038378*M,17],
+["202601","SKANDIA","USA/Canada Sectors",0.00023682*M,16],
+["202601","SKANDIA","Bank",0.00019482*M,7],
+["202601","SKANDIA","Japan",0.00017031*M,7],
+["202601","SKANDIA","Global Large Caps",0.00013768*M,8],
+["202601","SKANDIA","China",0.00013588*M,11],
+["202601","SKANDIA","Asia Emerging",0.00011745*M,8],
+["202601","SKANDIA","Global Sectors",0.00009723*M,8],
+["202601","SKANDIA","Government",0.00007483*M,5],
+["202601","SKANDIA","No Identificado",0.00007268*M,3],
+["202601","SKANDIA","Latin America",0.00006024*M,8],
+["202601","SKANDIA","Europe Europe ex UK",0.00005475*M,6],
+["202601","SKANDIA","Global",0.00004840*M,3],
+["202601","SKANDIA","Europe Large Caps",0.00003699*M,7],
+["202601","SKANDIA","Corporate",0.00003567*M,9],
+["202601","SKANDIA","Fixed Income",0.00002367*M,6],
+["202601","SKANDIA","Asia Pacific EX Japan",0.00001916*M,3],
+["202601","SKANDIA","China A",0.00001014*M,2],
+["202601","SKANDIA","Europe Small Caps",0.00000420*M,2],
+
+// 202602 - COLFONDOS
+["202602","COLFONDOS","Private Equity",0.00237605*M,71],
+["202602","COLFONDOS","USA/Canada Large Caps",0.00192722*M,21],
+["202602","COLFONDOS","Global Emerging Markets + BRIC",0.00118361*M,23],
+["202602","COLFONDOS","USA/Canada Sectors",0.00044394*M,21],
+["202602","COLFONDOS","Bank",0.00033233*M,8],
+["202602","COLFONDOS","China",0.00032754*M,12],
+["202602","COLFONDOS","Japan",0.00032470*M,11],
+["202602","COLFONDOS","Asia Emerging",0.00023643*M,13],
+["202602","COLFONDOS","Latin America",0.00020780*M,7],
+["202602","COLFONDOS","Corporate",0.00020561*M,2],
+["202602","COLFONDOS","Europe Large Caps",0.00016956*M,6],
+["202602","COLFONDOS","Global Large Caps",0.00014327*M,7],
+["202602","COLFONDOS","Fixed Income",0.00008811*M,12],
+["202602","COLFONDOS","Global Sectors",0.00008804*M,5],
+["202602","COLFONDOS","Government",0.00008008*M,4],
+["202602","COLFONDOS","Asia Pacific EX Japan",0.00005433*M,2],
+["202602","COLFONDOS","Real Estate",0.00005319*M,5],
+["202602","COLFONDOS","Money Market",0.00004744*M,1],
+["202602","COLFONDOS","China A",0.00003489*M,5],
+["202602","COLFONDOS","USA/Canada Small Caps",0.00003220*M,2],
+["202602","COLFONDOS","Europe Europe ex UK",0.00002276*M,2],
+["202602","COLFONDOS","No Identificado",0.00002108*M,3],
+["202602","COLFONDOS","Europe Small Caps",0.00000123*M,1],
+
+// 202602 - PORVENIR
+["202602","PORVENIR","USA/Canada Large Caps",0.01072725*M,22],
+["202602","PORVENIR","Private Equity",0.00724740*M,126],
+["202602","PORVENIR","Global Emerging Markets + BRIC",0.00515958*M,15],
+["202602","PORVENIR","Japan",0.00197862*M,6],
+["202602","PORVENIR","USA/Canada Sectors",0.00121877*M,18],
+["202602","PORVENIR","China",0.00102984*M,6],
+["202602","PORVENIR","Bank",0.00095272*M,13],
+["202602","PORVENIR","Government",0.00068687*M,6],
+["202602","PORVENIR","Asia Emerging",0.00064642*M,8],
+["202602","PORVENIR","Latin America",0.00062721*M,8],
+["202602","PORVENIR","Global Large Caps",0.00032169*M,5],
+["202602","PORVENIR","Corporate",0.00028128*M,5],
+["202602","PORVENIR","No Identificado",0.00024264*M,2],
+["202602","PORVENIR","Europe Large Caps",0.00024218*M,2],
+["202602","PORVENIR","Asia Pacific EX Japan",0.00021443*M,2],
+["202602","PORVENIR","Money Market",0.00013323*M,4],
+["202602","PORVENIR","China A",0.00012266*M,1],
+["202602","PORVENIR","USA/Canada Small Caps",0.00009938*M,1],
+["202602","PORVENIR","Europe Europe ex UK",0.00007437*M,3],
+["202602","PORVENIR","Real Estate",0.00006257*M,4],
+["202602","PORVENIR","NO CLASIFICADO",0.00003715*M,1],
+["202602","PORVENIR","Fixed Income",0.00001724*M,1],
+["202602","PORVENIR","Global Sectors",0.00000519*M,4],
+["202602","PORVENIR","Global International (ex US)",0.00000446*M,1],
+["202602","PORVENIR","UK",0.00000405*M,1],
+["202602","PORVENIR","Europe",0.00000326*M,1],
+
+// 202602 - PROTECCION
+["202602","PROTECCION","Private Equity",0.00666194*M,113],
+["202602","PROTECCION","USA/Canada Large Caps",0.00584200*M,10],
+["202602","PROTECCION","Global Emerging Markets + BRIC",0.00375334*M,13],
+["202602","PROTECCION","USA/Canada Sectors",0.00199945*M,25],
+["202602","PROTECCION","Japan",0.00145681*M,11],
+["202602","PROTECCION","Bank",0.00127304*M,8],
+["202602","PROTECCION","China",0.00076445*M,9],
+["202602","PROTECCION","Asia Emerging",0.00062817*M,5],
+["202602","PROTECCION","Europe Large Caps",0.00058822*M,7],
+["202602","PROTECCION","Latin America",0.00058485*M,4],
+["202602","PROTECCION","Corporate",0.00039044*M,4],
+["202602","PROTECCION","Asia Pacific EX Japan",0.00028973*M,5],
+["202602","PROTECCION","Money Market",0.00020545*M,2],
+["202602","PROTECCION","Global Large Caps",0.00019985*M,6],
+["202602","PROTECCION","Europe",0.00011268*M,1],
+["202602","PROTECCION","China A",0.00010399*M,2],
+["202602","PROTECCION","Government",0.00010145*M,3],
+["202602","PROTECCION","Fixed Income",0.00008276*M,12],
+["202602","PROTECCION","Global Sectors",0.00008098*M,6],
+["202602","PROTECCION","Global",0.00006200*M,1],
+["202602","PROTECCION","Europe Europe ex UK",0.00002244*M,2],
+["202602","PROTECCION","No Identificado",0.00002190*M,1],
+["202602","PROTECCION","Global International (ex US)",0.00000785*M,1],
+
+// 202602 - SKANDIA
+["202602","SKANDIA","Private Equity",0.00087676*M,25],
+["202602","SKANDIA","USA/Canada Large Caps",0.00068544*M,24],
+["202602","SKANDIA","Global Emerging Markets + BRIC",0.00043319*M,17],
+["202602","SKANDIA","USA/Canada Sectors",0.00022919*M,18],
+["202602","SKANDIA","Japan",0.00017919*M,7],
+["202602","SKANDIA","China",0.00014481*M,12],
+["202602","SKANDIA","Bank",0.00014146*M,8],
+["202602","SKANDIA","Global Large Caps",0.00013866*M,9],
+["202602","SKANDIA","Asia Emerging",0.00009907*M,8],
+["202602","SKANDIA","Global Sectors",0.00009906*M,8],
+["202602","SKANDIA","Corporate",0.00008965*M,9],
+["202602","SKANDIA","Latin America",0.00008303*M,7],
+["202602","SKANDIA","No Identificado",0.00007225*M,2],
+["202602","SKANDIA","Global",0.00004893*M,3],
+["202602","SKANDIA","Europe Europe ex UK",0.00004639*M,6],
+["202602","SKANDIA","Europe Large Caps",0.00003766*M,6],
+["202602","SKANDIA","Government",0.00003596*M,3],
+["202602","SKANDIA","Asia Pacific EX Japan",0.00002628*M,3],
+["202602","SKANDIA","Fixed Income",0.00002292*M,5],
+["202602","SKANDIA","China A",0.00001393*M,2],
+["202602","SKANDIA","Europe Small Caps",0.00000428*M,2],
+
+// 202603 - COLFONDOS
+["202603","COLFONDOS","Private Equity",0.00228921*M,72],
+["202603","COLFONDOS","USA/Canada Large Caps",0.00183841*M,25],
+["202603","COLFONDOS","Global Emerging Markets + BRIC",0.00104082*M,21],
+["202603","COLFONDOS","USA/Canada Sectors",0.00042733*M,25],
+["202603","COLFONDOS","Bank",0.00034720*M,9],
+["202603","COLFONDOS","Japan",0.00027856*M,11],
+["202603","COLFONDOS","China",0.00027315*M,12],
+["202603","COLFONDOS","Latin America",0.00017753*M,6],
+["202603","COLFONDOS","Asia Emerging",0.00017015*M,13],
+["202603","COLFONDOS","Corporate",0.00014417*M,1],
+["202603","COLFONDOS","Europe Large Caps",0.00012726*M,6],
+["202603","COLFONDOS","Global Large Caps",0.00011600*M,7],
+["202603","COLFONDOS","Fixed Income",0.00008403*M,11],
+["202603","COLFONDOS","Global Sectors",0.00007842*M,5],
+["202603","COLFONDOS","Asia Pacific EX Japan",0.00006458*M,2],
+["202603","COLFONDOS","Real Estate",0.00005804*M,5],
+["202603","COLFONDOS","Money Market",0.00005714*M,1],
+["202603","COLFONDOS","Government",0.00004146*M,3],
+["202603","COLFONDOS","China A",0.00003051*M,5],
+["202603","COLFONDOS","USA/Canada Small Caps",0.00002971*M,2],
+["202603","COLFONDOS","No Identificado",0.00002442*M,4],
+["202603","COLFONDOS","Europe Europe ex UK",0.00001932*M,2],
+["202603","COLFONDOS","Europe Small Caps",0.00000099*M,1],
+
+// 202603 - PORVENIR
+["202603","PORVENIR","USA/Canada Large Caps",0.00995286*M,24],
+["202603","PORVENIR","Private Equity",0.00703514*M,126],
+["202603","PORVENIR","Global Emerging Markets + BRIC",0.00465338*M,15],
+["202603","PORVENIR","Japan",0.00169256*M,5],
+["202603","PORVENIR","Bank",0.00104095*M,13],
+["202603","PORVENIR","USA/Canada Sectors",0.00103759*M,17],
+["202603","PORVENIR","China",0.00103214*M,6],
+["202603","PORVENIR","Latin America",0.00070030*M,7],
+["202603","PORVENIR","Asia Emerging",0.00064875*M,9],
+["202603","PORVENIR","Government",0.00063125*M,6],
+["202603","PORVENIR","No Identificado",0.00027359*M,2],
+["202603","PORVENIR","Europe Large Caps",0.00021217*M,2],
+["202603","PORVENIR","Asia Pacific EX Japan",0.00020192*M,3],
+["202603","PORVENIR","Global Large Caps",0.00014124*M,4],
+["202603","PORVENIR","China A",0.00010698*M,1],
+["202603","PORVENIR","Europe Europe ex UK",0.00009953*M,3],
+["202603","PORVENIR","Money Market",0.00009794*M,4],
+["202603","PORVENIR","USA/Canada Small Caps",0.00008892*M,1],
+["202603","PORVENIR","Real Estate",0.00006456*M,4],
+["202603","PORVENIR","Corporate",0.00005098*M,3],
+["202603","PORVENIR","NO CLASIFICADO",0.00002576*M,1],
+["202603","PORVENIR","Fixed Income",0.00001578*M,1],
+["202603","PORVENIR","Global Sectors",0.00000491*M,4],
+["202603","PORVENIR","Global International (ex US)",0.00000393*M,1],
+["202603","PORVENIR","Europe",0.00000389*M,1],
+["202603","PORVENIR","UK",0.00000356*M,1],
+
+// 202603 - PROTECCION
+["202603","PROTECCION","Private Equity",0.00632120*M,113],
+["202603","PROTECCION","USA/Canada Large Caps",0.00545674*M,12],
+["202603","PROTECCION","Global Emerging Markets + BRIC",0.00322173*M,11],
+["202603","PROTECCION","USA/Canada Sectors",0.00177662*M,27],
+["202603","PROTECCION","Japan",0.00124233*M,11],
+["202603","PROTECCION","Bank",0.00122000*M,8],
+["202603","PROTECCION","China",0.00065075*M,10],
+["202603","PROTECCION","Latin America",0.00057598*M,5],
+["202603","PROTECCION","Europe Large Caps",0.00046787*M,7],
+["202603","PROTECCION","Asia Emerging",0.00042633*M,6],
+["202603","PROTECCION","Money Market",0.00041240*M,2],
+["202603","PROTECCION","Corporate",0.00035830*M,4],
+["202603","PROTECCION","Asia Pacific EX Japan",0.00023160*M,5],
+["202603","PROTECCION","Global Large Caps",0.00016805*M,6],
+["202603","PROTECCION","Government",0.00013681*M,4],
+["202603","PROTECCION","Europe",0.00012442*M,1],
+["202603","PROTECCION","China A",0.00009070*M,1],
+["202603","PROTECCION","Fixed Income",0.00007892*M,12],
+["202603","PROTECCION","Global Sectors",0.00007039*M,6],
+["202603","PROTECCION","Global",0.00005147*M,1],
+["202603","PROTECCION","No Identificado",0.00002099*M,1],
+["202603","PROTECCION","Global International (ex US)",0.00000707*M,1],
+["202603","PROTECCION","Europe Europe ex UK",0.00000003*M,1],
+
+// 202603 - SKANDIA
+["202603","SKANDIA","Private Equity",0.00083096*M,23],
+["202603","SKANDIA","USA/Canada Large Caps",0.00053326*M,24],
+["202603","SKANDIA","Global Emerging Markets + BRIC",0.00036752*M,16],
+["202603","SKANDIA","USA/Canada Sectors",0.00027285*M,22],
+["202603","SKANDIA","Bank",0.00017527*M,7],
+["202603","SKANDIA","Japan",0.00016622*M,6],
+["202603","SKANDIA","Asia Emerging",0.00012131*M,8],
+["202603","SKANDIA","Global Large Caps",0.00011981*M,9],
+["202603","SKANDIA","China",0.00011262*M,12],
+["202603","SKANDIA","Global Sectors",0.00009639*M,8],
+["202603","SKANDIA","Government",0.00009122*M,6],
+["202603","SKANDIA","Latin America",0.00007801*M,6],
+["202603","SKANDIA","No Identificado",0.00007162*M,2],
+["202603","SKANDIA","Global",0.00004445*M,3],
+["202603","SKANDIA","Corporate",0.00003874*M,9],
+["202603","SKANDIA","Europe Europe ex UK",0.00003701*M,6],
+["202603","SKANDIA","Asia Pacific EX Japan",0.00002434*M,3],
+["202603","SKANDIA","Europe Large Caps",0.00002125*M,6],
+["202603","SKANDIA","Fixed Income",0.00002099*M,5],
+["202603","SKANDIA","China A",0.00000878*M,2],
+["202603","SKANDIA","Europe Small Caps",0.00000366*M,2],
+];
+
+const afpTotals = {
+    "202601": { PORVENIR: 0.03199583*M, PROTECCION: 0.02426903*M, COLFONDOS: 0.00826714*M, SKANDIA: 0.00346281*M },
+    "202602": { PORVENIR: 0.03214046*M, PROTECCION: 0.02523379*M, COLFONDOS: 0.00840144*M, SKANDIA: 0.00350883*M },
+    "202603": { PORVENIR: 0.02982059*M, PROTECCION: 0.02311071*M, COLFONDOS: 0.00771843*M, SKANDIA: 0.00323699*M }
+};
+
+const multifondoData = {
+    "202601": { "Obligatorias Moderado": 0.07050759*M, "Obligatorias Mayor Riesgo": 0.04901279*M, "Cesantias LP": 0.00487860*M, "Voluntarias": 0.00466700*M, "Obligatorias Retiro Prog.": 0.00404224*M, "Obligatorias Conservador": 0.00388576*M },
+    "202602": { "Obligatorias Moderado": 0.07164752*M, "Obligatorias Mayor Riesgo": 0.05084821*M, "Cesantias LP": 0.00482518*M, "Obligatorias Retiro Prog.": 0.00403528*M, "Obligatorias Conservador": 0.00374119*M, "Voluntarias": 0.00371604*M },
+    "202603": { "Obligatorias Moderado": 0.06514775*M, "Obligatorias Mayor Riesgo": 0.04780947*M, "Voluntarias": 0.00446699*M, "Cesantias LP": 0.00416254*M, "Obligatorias Retiro Prog.": 0.00378075*M, "Obligatorias Conservador": 0.00336804*M }
+};
+
+const topFondos = [
+    ["SPDR TRUST SERIES 1","State Street","ETF","USA/Canada Large Caps",0.00508776*M],
+    ["ISHARES CORE S&P 500 ETF","BlackRock","ETF","USA/Canada Large Caps",0.00486941*M],
+    ["ISHARES CORE MCSI EM IMI UCITS ETF","BlackRock","ETF","Global Emerging Markets + BRIC",0.00370795*M],
+    ["VANGUARD S&P 500 UCITS","Vanguard Group","FFMM","USA/Canada Large Caps",0.00225396*M],
+    ["VANGUARD S&P 500 ETF","Vanguard Group","ETF","USA/Canada Large Caps",0.00219820*M],
+    ["JPMORGAN BETABUILDERS JAPAN ETF","JPMorgan","ETF","Japan",0.00150536*M],
+    ["ISHARES CORE MSCI EMERGING MARKETS ETF","BlackRock","ETF","Global Emerging Markets + BRIC",0.00142621*M],
+    ["VANGUARD EMERGING MARKETS ETF","Vanguard Group","ETF","Global Emerging Markets + BRIC",0.00117401*M],
+    ["ISHARES MSCI CHINA ETF","BlackRock","ETF","China",0.00099275*M],
+    ["ISHARES MSCI BRAZIL ETF","BlackRock","ETF","Latin America",0.00095182*M],
+    ["SPDR PORTFOLIO S&P EMERGING MARKETS ETF","State Street","ETF","Global Emerging Markets + BRIC",0.00082264*M],
+    ["ISHARES MSCI EMERGING MARKETS ETF","BlackRock","ETF","Global Emerging Markets + BRIC",0.00074993*M],
+    ["ISHARES CORE S&P 500 INDEX","BlackRock","ETF","USA/Canada Large Caps",0.00069075*M],
+    ["INVESCO NASDAQ 100 ETF","Invesco Asset Management","ETF","USA/Canada Large Caps",0.00067342*M],
+    ["KKR CPS MANAGERS FUND","KKR","Private Equity","Private Equity",0.00066421*M],
+    ["BNP PARIBAS","Bank","Bank","Bank",0.00062925*M],
+    ["BAILLIE GIFFORD PACIFIC FUND","Baillie Gifford","FFMM","Asia Emerging",0.00057635*M],
+    ["VANGUARD INSTITUTIONAL INDEX","Vanguard Group","FFMM","USA/Canada Large Caps",0.00054321*M],
+    ["ISHARES RUSSELL 1000 GROWTH ETF","BlackRock","ETF","USA/Canada Large Caps",0.00054013*M],
+    ["ROBECO QI EMERGING MARKETS ACTIVE EQUITIES","Robeco Group","FFMM","Global Emerging Markets + BRIC",0.00053170*M],
+];
+
+const topAumentos = [
+    ["SPDR TRUST SERIES 1","State Street",2869.71,"USA/Canada Large Caps"],
+    ["ISHARES CORE S&P 500 ETF","BlackRock",1848.50,"USA/Canada Large Caps"],
+    ["ISHARES CORE MCSI EM IMI UCITS ETF","BlackRock",1748.62,"Global Emerging Markets + BRIC"],
+    ["VANGUARD S&P 500 ETF","Vanguard Group",1709.86,"USA/Canada Large Caps"],
+    ["ISHARES CORE MSCI EMERGING MARKETS ETF","BlackRock",1389.33,"Global Emerging Markets + BRIC"],
+    ["VANGUARD EMERGING MARKETS ETF","Vanguard Group",1139.21,"Global Emerging Markets + BRIC"],
+    ["VANGUARD S&P 500 UCITS","Vanguard Group",1075.63,"USA/Canada Large Caps"],
+    ["ISHARES MSCI EMERGING MARKETS ETF","BlackRock",693.85,"Global Emerging Markets + BRIC"],
+    ["ISHARES CORE S&P 500 ETF (2)","BlackRock",601.74,"USA/Canada Large Caps"],
+    ["JPMORGAN BETABUILDERS JAPAN ETF","JPMorgan",450.35,"Japan"],
+    ["ISHARES RUSSELL 1000 GROWTH ETF","BlackRock",431.38,"USA/Canada Large Caps"],
+    ["GOBIERNO DE ESTADOS UNIDOS","Government",405.69,"Government"],
+    ["VISTA EQUITY PARTNERS FUND VII","Vista Equity Partners",326.47,"Private Equity"],
+    ["AMERICAN SECURITIES PARTNERS VIII","American Securities",245.18,"Private Equity"],
+    ["BNP PARIBAS S.A.","Bank",214.78,"Bank"],
+];
+
+const topDisminuciones = [
+    ["SPDR TRUST SERIES 1","State Street",-3020.34,"USA/Canada Large Caps"],
+    ["ISHARES MSCI EMERGING MARKETS ETF","BlackRock",-2570.77,"Global Emerging Markets + BRIC"],
+    ["VANGUARD S&P 500 ETF","Vanguard Group",-2099.71,"USA/Canada Large Caps"],
+    ["ISHARES CORE S&P 500 INDEX","BlackRock",-1933.32,"USA/Canada Large Caps"],
+    ["VANGUARD S&P 500 UCITS","Vanguard Group",-1133.37,"USA/Canada Large Caps"],
+    ["VANGUARD EMERGING MARKETS ETF","Vanguard Group",-1041.29,"Global Emerging Markets + BRIC"],
+    ["JPMORGAN BETABUILDERS JAPAN ETF","JPMorgan",-695.48,"Japan"],
+    ["ISHARES CORE S&P 500 ETF","BlackRock",-639.24,"USA/Canada Large Caps"],
+    ["ISHARES CORE S&P 500 ETF (2)","BlackRock",-389.32,"USA/Canada Large Caps"],
+    ["ISHARES RUSSELL 1000 GROWTH ETF","BlackRock",-381.38,"USA/Canada Large Caps"],
+    ["ISHARES S&P 500 IT SECTOR UCITS","BlackRock",-278.21,"USA/Canada Sectors"],
+    ["ISHARES CORE MCSI EM IMI UCITS ETF","BlackRock",-263.79,"Global Emerging Markets + BRIC"],
+    ["BNP PARIBAS SA","Bank",-248.67,"Bank"],
+    ["VANGUARD EMERGING MARKETS ETF (2)","Vanguard Group",-247.94,"Global Emerging Markets + BRIC"],
+    ["ISHARES CORE S&P 500 INDEX (2)","BlackRock",-245.40,"USA/Canada Large Caps"],
+];
+
+// ================================================================
+// CONSTANTS & HELPERS
+// ================================================================
+const AFPs = ["PORVENIR","PROTECCION","COLFONDOS","SKANDIA"];
+const PERIODOS = ["202601","202602","202603"];
+const PERIODO_LABELS = {"202601":"Ene 2026","202602":"Feb 2026","202603":"Mar 2026"};
+
+const AFP_COLORS = {
+    PORVENIR: "#5CC6B4",
+    PROTECCION: "#3666C0",
+    COLFONDOS: "#A8D0FF",
+    SKANDIA: "#CDC195"
+};
+
+const AFP_COLORS_LIGHT = {
+    PORVENIR: "rgba(92,198,180,0.15)",
+    PROTECCION: "rgba(54,102,192,0.15)",
+    COLFONDOS: "rgba(168,208,255,0.15)",
+    SKANDIA: "rgba(205,193,149,0.15)"
+};
+
+function fmtUSD(v) {
+    if (Math.abs(v) >= 10000) return '$' + (v/1000).toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'B';
+    return '$' + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' M';
+}
+
+function fmtNum(v) {
+    return v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function fmtPct(v) { return (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; }
+
+function fmtPctAbs(v) { return v.toFixed(2) + '%'; }
+
+function getFiltered() {
+    const p = document.getElementById('filterPeriodo').value;
+    const a = document.getElementById('filterAFP').value;
+    const r = document.getElementById('filterRegion').value;
+    return rawData.filter(d => {
+        if (p !== 'all' && d[0] !== p) return false;
+        if (a !== 'all' && d[1] !== a) return false;
+        if (r !== 'all' && d[2] !== r) return false;
+        return true;
+    });
+}
+
+function getFilteredByPeriod(periodo) {
+    const a = document.getElementById('filterAFP').value;
+    const r = document.getElementById('filterRegion').value;
+    return rawData.filter(d => {
+        if (d[0] !== periodo) return false;
+        if (a !== 'all' && d[1] !== a) return false;
+        if (r !== 'all' && d[2] !== r) return false;
+        return true;
+    });
+}
+
+function getLatestPeriod() {
+    const p = document.getElementById('filterPeriodo').value;
+    return p === 'all' ? '202603' : p;
+}
+
+function getPriorPeriod(per) {
+    const idx = PERIODOS.indexOf(per);
+    return idx > 0 ? PERIODOS[idx-1] : null;
+}
+
+function aggregateBy(data, idx) {
+    const map = {};
+    data.forEach(d => {
+        const key = d[idx];
+        if (!map[key]) map[key] = { aum: 0, fondos: 0 };
+        map[key].aum += d[3];
+        map[key].fondos += d[4];
+    });
+    return map;
+}
+
+// ================================================================
+// POPULATE REGION FILTER
+// ================================================================
+function populateRegionFilter() {
+    const regions = [...new Set(rawData.map(d => d[2]))].sort();
+    const sel = document.getElementById('filterRegion');
+    const current = sel.value;
+    sel.innerHTML = '<option value="all">Todas</option>';
+    regions.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r; opt.textContent = r;
+        if (r === current) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+// ================================================================
+// CHART MANAGEMENT
+// ================================================================
+const charts = {};
+
+function destroyChart(id) {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+// ================================================================
+// SECTION 1: OVERVIEW
+// ================================================================
+function renderOverview() {
+    const latestP = getLatestPeriod();
+    const priorP = getPriorPeriod(latestP);
+    const current = getFilteredByPeriod(latestP);
+    const prior = priorP ? getFilteredByPeriod(priorP) : [];
+
+    const totalAUM = current.reduce((s,d) => s + d[3], 0);
+    const totalFondos = current.reduce((s,d) => s + d[4], 0);
+    const priorAUM = prior.reduce((s,d) => s + d[3], 0);
+    const priorFondos = prior.reduce((s,d) => s + d[4], 0);
+    const varAUM = priorAUM ? ((totalAUM - priorAUM)/priorAUM*100) : null;
+    const varFondos = priorFondos ? ((totalFondos - priorFondos)/priorFondos*100) : null;
+
+    const regionsSet = [...new Set(current.map(d => d[2]))];
+    const regionAgg = aggregateBy(current, 2);
+    const afpAgg = aggregateBy(current, 1);
+    const topRegEntries = Object.entries(regionAgg).sort((a,b) => b[1].aum - a[1].aum);
+    const topAFPEntries = Object.entries(afpAgg).sort((a,b) => b[1].aum - a[1].aum);
+
+    const topRegion = topRegEntries[0];
+    const topAFPItem = topAFPEntries[0];
+
+    const kpiRow = document.getElementById('kpiRow');
+    kpiRow.innerHTML = `
+        <div class="kpi-card">
+            <div class="kpi-label">Total AUM Internacional</div>
+            <div class="kpi-value">${fmtUSD(totalAUM)}</div>
+            ${varAUM !== null ? `<div class="kpi-badge ${varAUM>=0?'positive':'negative'}">${fmtPct(varAUM)} vs mes anterior</div>` : '<div class="kpi-sub">Periodo: ' + PERIODO_LABELS[latestP] + '</div>'}
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label"># Fondos / Subyacentes</div>
+            <div class="kpi-value">${fmtNum(totalFondos)}</div>
+            ${varFondos !== null ? `<div class="kpi-badge ${varFondos>=0?'positive':'negative'}">${fmtPct(varFondos)}</div>` : ''}
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label"># Regiones Activas</div>
+            <div class="kpi-value">${regionsSet.length}</div>
+            <div class="kpi-sub">Categorias de inversion</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Top Region por AUM</div>
+            <div class="kpi-value small">${topRegion ? topRegion[0] : '-'}</div>
+            <div class="kpi-sub">${topRegion ? fmtUSD(topRegion[1].aum) + ' (' + (topRegion[1].aum/totalAUM*100).toFixed(1) + '%)' : ''}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Top AFP por AUM</div>
+            <div class="kpi-value small">${topAFPItem ? topAFPItem[0] : '-'}</div>
+            <div class="kpi-sub">${topAFPItem ? fmtUSD(topAFPItem[1].aum) + ' (' + (topAFPItem[1].aum/totalAUM*100).toFixed(1) + '%)' : ''}</div>
+        </div>
+    `;
+
+    // Top 12 Regions horizontal bar
+    const top12 = topRegEntries.slice(0, 12);
+    destroyChart('chartRegions');
+    charts['chartRegions'] = new Chart(document.getElementById('chartRegions').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: top12.map(s => s[0]),
+            datasets: [{
+                data: top12.map(s => s[1].aum),
+                backgroundColor: top12.map((_, i) => {
+                    const colors = ['#5CC6B4','#4ab5a3','#3aa493','#2a9383','#1a8273','#0a7163','#005662','#3666C0','#A8D0FF','#CDC195','#5CC6B4','#3666C0'];
+                    return colors[i % colors.length];
+                }),
+                borderRadius: 4,
+                barPercentage: 0.75,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0d2137',
+                    borderColor: '#1a3a5c',
+                    borderWidth: 1,
+                    titleColor: '#e0e6ed',
+                    bodyColor: '#8899aa',
+                    callbacks: {
+                        label: ctx => fmtUSD(ctx.raw) + ' (' + (ctx.raw/totalAUM*100).toFixed(1) + '%)'
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(26,58,92,0.5)' }, ticks: { color: '#8899aa', callback: v => '$'+Math.round(v)+'M' } },
+                y: { grid: { display: false }, ticks: { color: '#e0e6ed', font: { size: 11, weight: '500' } } }
+            }
+        }
+    });
+
+    // AFP Doughnut
+    destroyChart('chartAFPDoughnut');
+    charts['chartAFPDoughnut'] = new Chart(document.getElementById('chartAFPDoughnut').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: topAFPEntries.map(a => a[0]),
+            datasets: [{
+                data: topAFPEntries.map(a => a[1].aum),
+                backgroundColor: topAFPEntries.map(a => AFP_COLORS[a[0]] || '#666'),
+                borderWidth: 2,
+                borderColor: '#0d2137',
+                hoverBorderColor: '#fff',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '58%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#e0e6ed', padding: 18, font: { size: 12, weight: '500' }, usePointStyle: true, pointStyleWidth: 10 }
+                },
+                tooltip: {
+                    backgroundColor: '#0d2137',
+                    borderColor: '#1a3a5c',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: ctx => {
+                            const pct = (ctx.raw / totalAUM * 100).toFixed(1);
+                            return ctx.label + ': ' + fmtUSD(ctx.raw) + ' (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ================================================================
+// SECTION 2: COMPARATIVO AFP
+// ================================================================
+function renderComparativo() {
+    const latestP = getLatestPeriod();
+    const afpFilter = document.getElementById('filterAFP').value;
+    const regionFilter = document.getElementById('filterRegion').value;
+    const data = rawData.filter(d => d[0] === latestP);
+
+    // Aggregate region totals for sorting
+    const regionTotals = {};
+    data.forEach(d => {
+        if (afpFilter !== 'all' && d[1] !== afpFilter) return;
+        if (regionFilter !== 'all' && d[2] !== regionFilter) return;
+        regionTotals[d[2]] = (regionTotals[d[2]]||0) + d[3];
+    });
+    const top10Regions = Object.entries(regionTotals).sort((a,b) => b[1] - a[1]).slice(0,10).map(r => r[0]);
+    const activeAFPs = AFPs.filter(a => afpFilter === 'all' || a === afpFilter);
+
+    const datasets = activeAFPs.map(afp => ({
+        label: afp,
+        data: top10Regions.map(reg => {
+            const row = data.find(d => d[1] === afp && d[2] === reg);
+            return row ? row[3] : 0;
+        }),
+        backgroundColor: AFP_COLORS[afp],
+        borderRadius: 3,
+        barPercentage: 0.8,
+    }));
+
+    destroyChart('chartStacked');
+    charts['chartStacked'] = new Chart(document.getElementById('chartStacked').getContext('2d'), {
+        type: 'bar',
+        data: { labels: top10Regions, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { color: '#e0e6ed', padding: 14, usePointStyle: true, pointStyleWidth: 10 } },
+                tooltip: {
+                    backgroundColor: '#0d2137', borderColor: '#1a3a5c', borderWidth: 1,
+                    callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtUSD(ctx.raw) }
+                }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false }, ticks: { color: '#8899aa', maxRotation: 45, font: { size: 9.5 } } },
+                y: { stacked: true, grid: { color: 'rgba(26,58,92,0.5)' }, ticks: { color: '#8899aa', callback: v => '$'+Math.round(v)+'M' } }
+            }
+        }
+    });
+
+    // Multifondo chart
+    const mfData = multifondoData[latestP];
+    const mfEntries = Object.entries(mfData).sort((a,b) => b[1] - a[1]);
+    const mfColors = ['#5CC6B4','#3666C0','#A8D0FF','#CDC195','#005662','#ef5350'];
+
+    destroyChart('chartMultifondo');
+    charts['chartMultifondo'] = new Chart(document.getElementById('chartMultifondo').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: mfEntries.map(e => e[0]),
+            datasets: [{
+                data: mfEntries.map(e => e[1]),
+                backgroundColor: mfColors,
+                borderRadius: 4,
+                barPercentage: 0.65,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0d2137', borderColor: '#1a3a5c', borderWidth: 1,
+                    callbacks: {
+                        label: ctx => {
+                            const total = mfEntries.reduce((s,e) => s+e[1], 0);
+                            return fmtUSD(ctx.raw) + ' (' + (ctx.raw/total*100).toFixed(1) + '%)';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8899aa', maxRotation: 25, font: { size: 9.5 } } },
+                y: { grid: { color: 'rgba(26,58,92,0.5)' }, ticks: { color: '#8899aa', callback: v => '$'+Math.round(v)+'M' } }
+            }
+        }
+    });
+}
+
+// ================================================================
+// SECTION 3: VARIACIONES
+// ================================================================
+function renderVariaciones() {
+    const afpFilter = document.getElementById('filterAFP').value;
+    const regionFilter = document.getElementById('filterRegion').value;
+
+    // Find top 8 regions by total across all periods (filtered)
+    const regionTotals = {};
+    rawData.forEach(d => {
+        if (afpFilter !== 'all' && d[1] !== afpFilter) return;
+        if (regionFilter !== 'all' && d[2] !== regionFilter) return;
+        regionTotals[d[2]] = (regionTotals[d[2]]||0) + d[3];
+    });
+    const top8 = Object.entries(regionTotals).sort((a,b) => b[1] - a[1]).slice(0,8).map(r => r[0]);
+    const lineColors = ['#5CC6B4','#3666C0','#A8D0FF','#CDC195','#ef5350','#4caf50','#ff9800','#9c27b0'];
+
+    const lineDatasets = top8.map((reg, i) => {
+        const values = PERIODOS.map(p => {
+            let sum = 0;
+            rawData.forEach(d => {
+                if (d[0] !== p || d[2] !== reg) return;
+                if (afpFilter !== 'all' && d[1] !== afpFilter) return;
+                sum += d[3];
+            });
+            return sum;
+        });
+        return {
+            label: reg,
+            data: values,
+            borderColor: lineColors[i],
+            backgroundColor: lineColors[i] + '15',
+            tension: 0.35,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            pointBackgroundColor: lineColors[i],
+            pointBorderColor: '#0d2137',
+            pointBorderWidth: 2,
+            borderWidth: 2.5,
+            fill: false,
+        };
+    });
+
+    destroyChart('chartEvolution');
+    charts['chartEvolution'] = new Chart(document.getElementById('chartEvolution').getContext('2d'), {
+        type: 'line',
+        data: { labels: PERIODOS.map(p => PERIODO_LABELS[p]), datasets: lineDatasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'right', labels: { color: '#e0e6ed', font: { size: 10 }, boxWidth: 14, padding: 10 } },
+                tooltip: {
+                    backgroundColor: '#0d2137', borderColor: '#1a3a5c', borderWidth: 1,
+                    callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtUSD(ctx.raw) }
+                }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(26,58,92,0.5)' }, ticks: { color: '#8899aa', font: { weight: '600' } } },
+                y: { grid: { color: 'rgba(26,58,92,0.5)' }, ticks: { color: '#8899aa', callback: v => '$'+Math.round(v)+'M' } }
+            }
+        }
+    });
+
+    // Variation % by AFP
+    const activeAFPs = AFPs.filter(a => afpFilter === 'all' || a === afpFilter);
+    const varLabels = activeAFPs;
+    const febVsJan = activeAFPs.map(afp => {
+        const t01 = afpTotals['202601'][afp] || 0;
+        const t02 = afpTotals['202602'][afp] || 0;
+        return t01 ? ((t02-t01)/t01*100) : 0;
+    });
+    const marVsFeb = activeAFPs.map(afp => {
+        const t02 = afpTotals['202602'][afp] || 0;
+        const t03 = afpTotals['202603'][afp] || 0;
+        return t02 ? ((t03-t02)/t02*100) : 0;
+    });
+
+    destroyChart('chartVarAFP');
+    charts['chartVarAFP'] = new Chart(document.getElementById('chartVarAFP').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: varLabels,
+            datasets: [
+                {
+                    label: 'Feb vs Ene',
+                    data: febVsJan,
+                    backgroundColor: febVsJan.map(v => v >= 0 ? 'rgba(92,198,180,0.7)' : 'rgba(239,83,80,0.7)'),
+                    borderColor: febVsJan.map(v => v >= 0 ? '#5CC6B4' : '#ef5350'),
+                    borderWidth: 1,
+                    borderRadius: 3,
+                    barPercentage: 0.5,
+                },
+                {
+                    label: 'Mar vs Feb',
+                    data: marVsFeb,
+                    backgroundColor: marVsFeb.map(v => v >= 0 ? 'rgba(54,102,192,0.7)' : 'rgba(239,83,80,0.7)'),
+                    borderColor: marVsFeb.map(v => v >= 0 ? '#3666C0' : '#ef5350'),
+                    borderWidth: 1,
+                    borderRadius: 3,
+                    barPercentage: 0.5,
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { color: '#e0e6ed', padding: 14 } },
+                tooltip: {
+                    backgroundColor: '#0d2137', borderColor: '#1a3a5c', borderWidth: 1,
+                    callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toFixed(2) + '%' }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#8899aa', font: { weight: '600' } } },
+                y: { grid: { color: 'rgba(26,58,92,0.5)' }, ticks: { color: '#8899aa', callback: v => v.toFixed(1)+'%' } }
+            }
+        }
+    });
+}
+
+// ================================================================
+// SECTION 4: HEATMAP
+// ================================================================
+function renderHeatmap() {
+    const latestP = getLatestPeriod();
+    const regionFilter = document.getElementById('filterRegion').value;
+    const afpFilter = document.getElementById('filterAFP').value;
+    const data = rawData.filter(d => d[0] === latestP);
+    const activeAFPs = AFPs.filter(a => afpFilter === 'all' || a === afpFilter);
+
+    // Aggregate
+    const regions = {};
+    data.forEach(d => {
+        if (regionFilter !== 'all' && d[2] !== regionFilter) return;
+        if (afpFilter !== 'all' && d[1] !== afpFilter) return;
+        regions[d[2]] = (regions[d[2]]||0) + d[3];
+    });
+    const sortedRegions = Object.entries(regions).sort((a,b) => b[1] - a[1]).map(r => r[0]);
+    const totalAUM = Object.values(regions).reduce((s,v) => s+v, 0);
+
+    // Build matrix and find max
+    const matrix = {};
+    let maxVal = 0;
+    sortedRegions.forEach(reg => {
+        matrix[reg] = {};
+        activeAFPs.forEach(afp => {
+            const row = data.find(d => d[1] === afp && d[2] === reg);
+            const val = row ? row[3] : 0;
+            matrix[reg][afp] = val;
+            if (val > maxVal) maxVal = val;
+        });
+    });
+
+    let html = '<table><thead><tr><th style="width:30px">#</th><th>Region</th>';
+    activeAFPs.forEach(a => html += `<th style="color:${AFP_COLORS[a]}">${a}</th>`);
+    html += '<th>TOTAL</th><th>% TOTAL</th><th>RANKING</th></tr></thead><tbody>';
+
+    let runningPct = 0;
+    sortedRegions.forEach((reg, i) => {
+        const rowTotal = activeAFPs.reduce((s, a) => s + (matrix[reg][a]||0), 0);
+        const pct = totalAUM > 0 ? (rowTotal/totalAUM*100) : 0;
+        runningPct += pct;
+
+        html += `<tr><td style="color:var(--text-muted)">${i+1}</td><td style="font-weight:600">${reg}</td>`;
+        activeAFPs.forEach(afp => {
+            const val = matrix[reg][afp] || 0;
+            const intensity = maxVal > 0 ? val / maxVal : 0;
+            let bg = 'transparent';
+            if (intensity > 0.6) bg = 'rgba(92, 198, 180, 0.55)';
+            else if (intensity > 0.3) bg = 'rgba(92, 198, 180, 0.35)';
+            else if (intensity > 0.1) bg = 'rgba(92, 198, 180, 0.2)';
+            else if (intensity > 0) bg = 'rgba(92, 198, 180, 0.08)';
+            html += `<td class="heatmap-cell" style="background:${bg}">${val > 0 ? fmtNum(Math.round(val)) : '<span style="color:#334455">-</span>'}</td>`;
+        });
+        html += `<td class="heatmap-cell" style="font-weight:700;color:var(--text-bright)">${fmtNum(Math.round(rowTotal))}</td>`;
+        html += `<td class="heatmap-cell" style="color:var(--accent1)">${pct.toFixed(1)}%</td>`;
+
+        // Ranking bar
+        const barW = Math.min(pct * 3, 100);
+        html += `<td style="min-width:80px"><div style="background:rgba(92,198,180,0.3);border-radius:3px;height:8px;width:100%"><div style="background:var(--accent1);border-radius:3px;height:8px;width:${barW}%"></div></div></td>`;
+        html += '</tr>';
+    });
+
+    // Totals row
+    html += `<tr style="background:var(--dk1);font-weight:700"><td></td><td>TOTAL</td>`;
+    activeAFPs.forEach(afp => {
+        const afpTotal = sortedRegions.reduce((s, reg) => s + (matrix[reg][afp]||0), 0);
+        html += `<td class="heatmap-cell" style="color:${AFP_COLORS[afp]}">${fmtNum(Math.round(afpTotal))}</td>`;
+    });
+    html += `<td class="heatmap-cell" style="color:var(--text-bright)">${fmtNum(Math.round(totalAUM))}</td><td class="heatmap-cell">100.0%</td><td></td></tr>`;
+
+    html += '</tbody></table>';
+    document.getElementById('heatmapWrapper').innerHTML = html;
+}
+
+// ================================================================
+// SECTION 5: TABLAS DE DETALLE
+// ================================================================
+function renderTablas() {
+    renderTableRegion();
+    renderTableAFP();
+    renderTableVar();
+}
+
+function renderTableRegion() {
+    const latestP = getLatestPeriod();
+    const priorP = getPriorPeriod(latestP);
+    const current = getFilteredByPeriod(latestP);
+    const prior = priorP ? getFilteredByPeriod(priorP) : [];
+
+    const regCurr = {};
+    const regFondos = {};
+    current.forEach(d => {
+        regCurr[d[2]] = (regCurr[d[2]]||0) + d[3];
+        regFondos[d[2]] = (regFondos[d[2]]||0) + d[4];
+    });
+    const regPrior = {};
+    prior.forEach(d => { regPrior[d[2]] = (regPrior[d[2]]||0) + d[3]; });
+
+    const totalAUM = Object.values(regCurr).reduce((s,v) => s+v, 0);
+    const maxAUM = Math.max(...Object.values(regCurr), 1);
+    const sorted = Object.entries(regCurr).sort((a,b) => b[1] - a[1]);
+
+    let html = '<table id="tblRegion"><thead><tr>';
+    html += '<th data-col="0" data-type="num">#</th>';
+    html += '<th data-col="1" data-type="str">Region</th>';
+    html += '<th data-col="2" data-type="num">AUM (USD M)</th>';
+    html += '<th data-col="3" data-type="num">% Total</th>';
+    html += '<th data-col="4" data-type="num">Var %</th>';
+    html += '<th>Barra AUM</th>';
+    html += '<th data-col="6" data-type="num"># Fondos</th>';
+    html += '<th data-col="7" data-type="num">AUM Prior</th>';
+    html += '</tr></thead><tbody>';
+
+    sorted.forEach(([reg, aum], i) => {
+        const pct = totalAUM > 0 ? (aum/totalAUM*100) : 0;
+        const priorVal = regPrior[reg] || 0;
+        const varPct = priorVal > 0 ? ((aum - priorVal)/priorVal*100) : (priorP ? 100 : 0);
+        const barW = maxAUM > 0 ? (aum/maxAUM*100) : 0;
+        const fondos = regFondos[reg] || 0;
+        const isPos = varPct >= 0;
+        const varClass = isPos ? 'var-positive' : 'var-negative';
+        const arrow = isPos ? '\u25B2' : '\u25BC';
+
+        html += `<tr>`;
+        html += `<td class="text-right" style="color:var(--text-muted)">${i+1}</td>`;
+        html += `<td style="font-weight:600">${reg}</td>`;
+        html += `<td class="text-right">${fmtNum(Math.round(aum))}</td>`;
+        html += `<td class="text-right">${pct.toFixed(1)}%</td>`;
+        html += `<td class="text-right ${varClass}">${arrow} ${fmtPctAbs(Math.abs(varPct))}</td>`;
+        html += `<td class="mini-bar-cell"><div class="mini-bar" style="width:${barW}%"></div></td>`;
+        html += `<td class="text-right">${fondos}</td>`;
+        html += `<td class="text-right" style="color:var(--text-muted)">${priorVal > 0 ? fmtNum(Math.round(priorVal)) : '-'}</td>`;
+        html += `</tr>`;
+    });
+
+    // Totals
+    const totalPrior = Object.values(regPrior).reduce((s,v) => s+v, 0);
+    const totalVar = totalPrior > 0 ? ((totalAUM-totalPrior)/totalPrior*100) : 0;
+    const totalFondos = Object.values(regFondos).reduce((s,v) => s+v, 0);
+    html += `<tr style="background:var(--dk1);font-weight:700">`;
+    html += `<td></td><td>TOTAL</td>`;
+    html += `<td class="text-right" style="color:var(--text-bright)">${fmtNum(Math.round(totalAUM))}</td>`;
+    html += `<td class="text-right">100.0%</td>`;
+    html += `<td class="text-right ${totalVar>=0?'var-positive':'var-negative'}">${totalVar>=0?'\u25B2':'\u25BC'} ${fmtPctAbs(Math.abs(totalVar))}</td>`;
+    html += `<td></td>`;
+    html += `<td class="text-right">${totalFondos}</td>`;
+    html += `<td class="text-right" style="color:var(--text-muted)">${totalPrior > 0 ? fmtNum(Math.round(totalPrior)) : '-'}</td>`;
+    html += `</tr>`;
+
+    html += '</tbody></table>';
+    document.getElementById('tableRegionWrapper').innerHTML = html;
+    makeSortable(document.getElementById('tblRegion'));
+}
+
+function renderTableAFP() {
+    const latestP = getLatestPeriod();
+    const priorP = getPriorPeriod(latestP);
+    const afpFilter = document.getElementById('filterAFP').value;
+    const regionFilter = document.getElementById('filterRegion').value;
+
+    // Compute AFP totals dynamically from rawData (respects region filter)
+    const activeAFPs = AFPs.filter(a => afpFilter === 'all' || a === afpFilter);
+    const dynTotals = {};
+    const dynPriorTotals = {};
+    const dynFondos = {};
+    activeAFPs.forEach(afp => {
+        dynTotals[afp] = rawData.filter(d => d[0] === latestP && d[1] === afp && (regionFilter === 'all' || d[2] === regionFilter)).reduce((s,d) => s + d[3], 0);
+        dynFondos[afp] = rawData.filter(d => d[0] === latestP && d[1] === afp && (regionFilter === 'all' || d[2] === regionFilter)).reduce((s,d) => s + d[4], 0);
+        if (priorP) {
+            dynPriorTotals[afp] = rawData.filter(d => d[0] === priorP && d[1] === afp && (regionFilter === 'all' || d[2] === regionFilter)).reduce((s,d) => s + d[3], 0);
+        }
+    });
+    const sysTotal = Object.values(dynTotals).reduce((s,v) => s+v, 0);
+
+    let html = '<table id="tblAFP"><thead><tr>';
+    html += '<th>AFP</th><th>AUM (USD M)</th><th>% Sistema</th><th>Var %</th><th># Fondos</th>';
+    html += '</tr></thead><tbody>';
+
+    activeAFPs.forEach(afp => {
+        const aum = dynTotals[afp] || 0;
+        const pct = sysTotal > 0 ? (aum/sysTotal*100) : 0;
+        const priorAum = priorP ? (dynPriorTotals[afp]||0) : 0;
+        const varPct = priorAum > 0 ? ((aum-priorAum)/priorAum*100) : 0;
+        const fondos = dynFondos[afp] || 0;
+        const isPos = varPct >= 0;
+
+        html += `<tr>`;
+        html += `<td style="color:${AFP_COLORS[afp]};font-weight:700;font-size:0.88rem">${afp}</td>`;
+        html += `<td class="text-right">${fmtNum(Math.round(aum))}</td>`;
+        html += `<td class="text-right">${pct.toFixed(1)}%</td>`;
+        html += `<td class="text-right ${isPos?'var-positive':'var-negative'}">${isPos?'\u25B2':'\u25BC'} ${fmtPctAbs(Math.abs(varPct))}</td>`;
+        html += `<td class="text-right">${fondos}</td>`;
+        html += `</tr>`;
+    });
+
+    html += '</tbody></table>';
+
+    // Multifondo detail (system-level data — show note when region filtered)
+    html += '<div style="margin-top:24px"><h3 style="color:var(--text-muted);font-size:0.82rem;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700">Distribucion por Multifondo';
+    if (regionFilter !== 'all') html += ' <span style="font-size:0.7rem;color:var(--accent4);font-weight:400">(datos a nivel sistema — no filtrable por region)</span>';
+    html += '</h3>';
+    html += '<table id="tblMF"><thead><tr><th>Multifondo</th><th>AUM (USD M)</th><th>% Total</th>';
+    if (priorP) html += '<th>AUM Prior</th><th>Var %</th>';
+    html += '</tr></thead><tbody>';
+
+    const mf = multifondoData[latestP];
+    const mfPrior = priorP ? multifondoData[priorP] : null;
+    const mfTotal = Object.values(mf).reduce((s,v) => s+v, 0);
+
+    Object.entries(mf).sort((a,b) => b[1] - a[1]).forEach(([name, val]) => {
+        const priorVal = mfPrior ? (mfPrior[name]||0) : 0;
+        const varPct = priorVal > 0 ? ((val-priorVal)/priorVal*100) : 0;
+        html += `<tr><td style="font-weight:500">${name}</td><td class="text-right">${fmtNum(Math.round(val))}</td><td class="text-right">${(val/mfTotal*100).toFixed(1)}%</td>`;
+        if (priorP) {
+            html += `<td class="text-right" style="color:var(--text-muted)">${priorVal > 0 ? fmtNum(Math.round(priorVal)) : '-'}</td>`;
+            html += `<td class="text-right ${varPct>=0?'var-positive':'var-negative'}">${varPct>=0?'\u25B2':'\u25BC'} ${fmtPctAbs(Math.abs(varPct))}</td>`;
+        }
+        html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+
+    // Top 20 Fondos — filter by region
+    const filteredFondos = regionFilter === 'all' ? topFondos : topFondos.filter(f => f[3] === regionFilter);
+    const fondosLabel = regionFilter === 'all' ? 'Top 20 Fondos por AUM (Mar 2026)' : `Fondos en ${regionFilter} por AUM (Mar 2026)`;
+    html += `<div style="margin-top:24px"><h3 style="color:var(--text-muted);font-size:0.82rem;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700">${fondosLabel}</h3>`;
+    if (filteredFondos.length === 0) {
+        html += '<p style="color:var(--text-muted);padding:16px;font-size:0.85rem">No hay fondos Top 20 en esta region.</p>';
+    } else {
+        html += '<table id="tblTopFondos"><thead><tr><th>#</th><th>Fondo</th><th>Gestora</th><th>Tipo</th><th>Region</th><th>AUM (USD M)</th></tr></thead><tbody>';
+        filteredFondos.forEach((f, i) => {
+            html += `<tr><td style="color:var(--text-muted)">${i+1}</td><td style="font-weight:500;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f[0]}</td><td>${f[1]}</td><td><span style="padding:2px 6px;border-radius:3px;font-size:0.72rem;font-weight:600;background:${f[2]==='ETF'?'rgba(92,198,180,0.15)':f[2]==='FFMM'?'rgba(54,102,192,0.15)':'rgba(205,193,149,0.15)'};color:${f[2]==='ETF'?'var(--accent1)':f[2]==='FFMM'?'var(--accent6)':'var(--accent4)'}">${f[2]}</span></td><td style="font-size:0.75rem">${f[3]}</td><td class="text-right">${fmtNum(Math.round(f[4]))}</td></tr>`;
+        });
+        html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    document.getElementById('tableAFPWrapper').innerHTML = html;
+    makeSortable(document.getElementById('tblAFP'));
+    makeSortable(document.getElementById('tblMF'));
+    makeSortable(document.getElementById('tblTopFondos'));
+}
+
+function renderTableVar() {
+    const regionFilter = document.getElementById('filterRegion').value;
+    let html = '';
+
+    // Filter by region
+    const filteredAumentos = regionFilter === 'all' ? topAumentos : topAumentos.filter(a => a[3] === regionFilter);
+    const filteredDismin = regionFilter === 'all' ? topDisminuciones : topDisminuciones.filter(a => a[3] === regionFilter);
+
+    // Top Aumentos
+    html += '<div style="margin-bottom:28px">';
+    const aumLabel = regionFilter === 'all' ? 'Top 15 Mayores Aumentos (Variacion USD M)' : `Mayores Aumentos en ${regionFilter} (Variacion USD M)`;
+    html += `<h3 style="color:var(--green);font-size:0.85rem;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700">\u25B2 ${aumLabel}</h3>`;
+    if (filteredAumentos.length === 0) {
+        html += '<p style="color:var(--text-muted);padding:16px;font-size:0.85rem">No hay fondos con aumentos en esta region.</p>';
+    } else {
+        html += '<table id="tblAum"><thead><tr><th style="width:30px">#</th><th>Fondo</th><th>Gestora</th><th>Region</th><th>Variacion USD M</th><th>Barra</th></tr></thead><tbody>';
+        const maxInc = Math.max(...filteredAumentos.map(a => a[2]));
+        filteredAumentos.forEach(([name, mgr, val, reg], i) => {
+            const barW = (val / maxInc * 100);
+            html += `<tr><td style="color:var(--text-muted)">${i+1}</td><td style="font-weight:500;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</td><td>${mgr}</td><td style="font-size:0.75rem">${reg}</td><td class="text-right var-positive">\u25B2 +${val.toFixed(2)}</td><td class="mini-bar-cell"><div style="height:7px;border-radius:3px;background:rgba(76,175,80,0.3);width:100%"><div style="height:7px;border-radius:3px;background:var(--green);width:${barW}%"></div></div></td></tr>`;
+        });
+        html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    // Top Disminuciones
+    html += '<div>';
+    const disLabel = regionFilter === 'all' ? 'Top 15 Mayores Disminuciones (Variacion USD M)' : `Mayores Disminuciones en ${regionFilter} (Variacion USD M)`;
+    html += `<h3 style="color:var(--red);font-size:0.85rem;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;font-weight:700">\u25BC ${disLabel}</h3>`;
+    if (filteredDismin.length === 0) {
+        html += '<p style="color:var(--text-muted);padding:16px;font-size:0.85rem">No hay fondos con disminuciones en esta region.</p>';
+    } else {
+        html += '<table id="tblDis"><thead><tr><th style="width:30px">#</th><th>Fondo</th><th>Gestora</th><th>Region</th><th>Variacion USD M</th><th>Barra</th></tr></thead><tbody>';
+        const maxDec = Math.max(...filteredDismin.map(a => Math.abs(a[2])));
+        filteredDismin.forEach(([name, mgr, val, reg], i) => {
+            const barW = (Math.abs(val) / maxDec * 100);
+            html += `<tr><td style="color:var(--text-muted)">${i+1}</td><td style="font-weight:500;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</td><td>${mgr}</td><td style="font-size:0.75rem">${reg}</td><td class="text-right var-negative">\u25BC ${val.toFixed(2)}</td><td class="mini-bar-cell"><div style="height:7px;border-radius:3px;background:rgba(239,83,80,0.2);width:100%"><div style="height:7px;border-radius:3px;background:var(--red);width:${barW}%"></div></div></td></tr>`;
+        });
+        html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    document.getElementById('tableVarWrapper').innerHTML = html;
+    makeSortable(document.getElementById('tblAum'));
+    makeSortable(document.getElementById('tblDis'));
+}
+
+// ================================================================
+// SORTABLE TABLE ENGINE
+// ================================================================
+function makeSortable(table) {
+    if (!table) return;
+    const headers = table.querySelectorAll('thead th');
+    headers.forEach((th, colIdx) => {
+        th.addEventListener('click', function() {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.cells.length > 1);
+            // Remove sort indicators from all headers
+            headers.forEach(h => h.classList.remove('sort-asc','sort-desc'));
+
+            const currentDir = this._sortDir || 'none';
+            const newDir = currentDir === 'asc' ? 'desc' : 'asc';
+            this._sortDir = newDir;
+            this.classList.add('sort-' + newDir);
+
+            rows.sort((a, b) => {
+                if (!a.cells[colIdx] || !b.cells[colIdx]) return 0;
+                let av = a.cells[colIdx].textContent.trim();
+                let bv = b.cells[colIdx].textContent.trim();
+
+                // Try numeric
+                const an = parseFloat(av.replace(/[^0-9.\-]/g, ''));
+                const bn = parseFloat(bv.replace(/[^0-9.\-]/g, ''));
+
+                if (!isNaN(an) && !isNaN(bn)) {
+                    return newDir === 'asc' ? an - bn : bn - an;
+                }
+                return newDir === 'asc' ? av.localeCompare(bv, 'es') : bv.localeCompare(av, 'es');
+            });
+
+            // Skip total row at end if present
+            const totalRow = rows.find(r => r.cells[1] && r.cells[1].textContent.trim() === 'TOTAL');
+            const dataRows = rows.filter(r => r !== totalRow);
+
+            dataRows.forEach(r => tbody.appendChild(r));
+            if (totalRow) tbody.appendChild(totalRow);
+        });
+    });
+}
+
+// ================================================================
+// TAB NAVIGATION
+// ================================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById('section-' + this.dataset.tab);
+        if (target) {
+            target.classList.add('active');
+            // Re-render to ensure charts size properly
+            setTimeout(renderActiveSection, 50);
+        }
+    });
+});
+
+document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.sub-section').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById('subtab-' + this.dataset.subtab);
+        if (target) target.classList.add('active');
+    });
+});
+
+// ================================================================
+// RENDER ENGINE
+// ================================================================
+function renderActiveSection() {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (!activeTab) return;
+    const tab = activeTab.dataset.tab;
+
+    switch(tab) {
+        case 'overview': renderOverview(); break;
+        case 'comparativo': renderComparativo(); break;
+        case 'variaciones': renderVariaciones(); break;
+        case 'heatmap': renderHeatmap(); break;
+        case 'tablas': renderTablas(); break;
+    }
+}
+
+function renderAll() {
+    renderActiveSection();
+}
+
+// Filter event listeners
+document.getElementById('filterPeriodo').addEventListener('change', renderAll);
+document.getElementById('filterAFP').addEventListener('change', renderAll);
+document.getElementById('filterRegion').addEventListener('change', renderAll);
+
+// ================================================================
+// INIT
+// ================================================================
+populateRegionFilter();
+renderAll();
+</script>
+</body>
+</html>
